@@ -1,5 +1,6 @@
 from codex.baseerror import *
 from codex.baseview import APIView
+from WeChatTicket.views import StaticFileView
 
 from wechat.models import User
 
@@ -7,10 +8,12 @@ from wechat.models import User
 class UserBind(APIView):
 
     def validate_user(self):
+        # TODO:
         """
         input: self.input['student_id'] and self.input['password']
         raise: ValidateError when validating failed
         """
+
         raise NotImplementedError('You should implement UserBind.validate_user method')
 
     def get(self):
@@ -23,3 +26,24 @@ class UserBind(APIView):
         self.validate_user()
         user.student_id = self.input['student_id']
         user.save()
+
+
+class UserHelp(StaticFileView):
+
+    def get(self):
+        return self.get_file('/help')
+
+#TODO
+class UserTicket(APIView):
+    
+    def get(self):
+        raise NotImplementedError('You should implement UserTicket')
+
+#TODO
+class Ticketing(APIView):
+    def get(self):
+        raise NotImplementedError('You should implement Ticketing')
+
+    def post(self):
+        raise NotImplementedError('You should implement Ticheting')
+

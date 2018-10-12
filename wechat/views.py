@@ -11,13 +11,13 @@ class CustomWeChatView(WeChatView):
     lib = WeChatLib(WECHAT_TOKEN, WECHAT_APPID, WECHAT_SECRET)
 
     handlers = [
-        HelpOrSubscribeHandler, UnbindOrUnsubscribeHandler, BindAccountHandler, BookEmptyHandler,
+        HelpOrSubscribeHandler, UnbindOrUnsubscribeHandler, BindAccountHandler, BookEmptyHandler, ListActivitiesHandler, GetTicketHandler
     ]
     error_message_handler = ErrorHandler
     default_handler = DefaultHandler
 
     event_keys = {
-        'book_what': 'SERVICE_BOOK_WHAT',
+        'list_activities': 'SERVICE_LIST_ACTIVITIES',
         'get_ticket': 'SERVICE_GET_TICKET',
         'account_bind': 'SERVICE_BIND',
         'help': 'SERVICE_HELP',
@@ -32,8 +32,8 @@ class CustomWeChatView(WeChatView):
                 "sub_button": [
                     {
                         "type": "click",
-                        "name": "抢啥",
-                        "key": event_keys['book_what'],
+                        "name": "列表",
+                        "key": event_keys['list_activities'],
                     },
                     {
                         "type": "click",

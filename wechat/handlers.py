@@ -65,3 +65,31 @@ class BookEmptyHandler(WeChatHandler):
 
     def handle(self):
         return self.reply_text(self.get_message('book_empty'))
+
+
+class ListActivitiesHandler(WeChatHandler):
+
+    def check(self):
+        return self.is_text('活动', '目录', 'activity', 'list') or \
+               self.is_event_click(self.view.event_keys['list_activities'])
+
+    def handle(self):
+        return self.reply_single_news({
+            'Title': self.get_message('list_title'),
+            'Description': self.get_message('list_description'),
+            'Url': self.url_list(),
+        })
+
+
+class GetTicketHandler(WeChatHandler):
+
+    def check(self):
+        return self.is_text('查票', 'ticket') or \
+               self.is_event_click(self.view.event_keys['get_ticket'])
+
+    def handle(self):
+        return self.reply_single_news({
+            'Title': self.get_message('ticket_title'),
+            'Description': self.get_message('ticket_description'),
+            'Url': self.url_ticket(),
+        })
