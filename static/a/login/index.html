@@ -101,9 +101,12 @@
             $('#alert').text(message);
             dom.focus();
         }
+
         api.get('/api/a/login', {}, function (data) {
+            console.log(data);
             window.location.href = '/a/activity/list';
         }, function () {
+            console.log('here');
             $('#loginnow').attr('disabled', false);
             api.form($('#form-login'), function (data) {
                 if (urlParam.next) {
