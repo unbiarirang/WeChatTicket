@@ -6,8 +6,13 @@ from codex.baseview import APIView
 from codex.baseerror import ValidateError
 from django.http import HttpResponse
 from django.core import serializers
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+from django.conf import settings
 from django.utils import timezone
 from wechat.views import CustomWeChatView
+from WeChatTicket import settings
+import os
 import json
 import time
 import dateutil.parser
@@ -165,8 +170,19 @@ class SetUpMenu(APIView):
             activity.name = nameList[idx]
             activities.append(activity)
 
-        print('+++', activities)
         CustomWeChatView.update_menu(activities)
+
+
+class UploadImage(APIView):
+    
+    def post(self):
+        image = self.request.FILES['image']
+        path = default_storage.save(image.name, ContentFile(image.read()))
+        full_path = settings.get_url('images/' + path)
+        return full_path
+
+
+
 
 
 

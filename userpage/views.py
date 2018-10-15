@@ -2,7 +2,7 @@ from codex.baseerror import *
 from codex.baseview import APIView
 from codex.baseerror import ValidateError
 from WeChatTicket.views import StaticFileView
-from wechat.models import User, Activity
+from wechat.models import User, Activity, Ticket
 from django.core import serializers
 import re
 import json
@@ -68,11 +68,32 @@ class GetDetail(APIView):
             return activity
 
 
-#TODO
 class UserTicket(APIView):
     
     def get(self):
-        raise NotImplementedError('You should implement UserTicket')
+        openID = self.request.GET.get('openid', '')
+        ticketID = self.request.GET.get('ticket', '')
+        
+        ticketModel = Ticket.objects.filter(unique_id=openID)[0]
+        ticket = dict()
+        ticket['uniqueId'] = ticketID
+        ticket['status'] = ticketModel['fields']['status']
+
+        activityID = ticketModel['fields']['activity_id']
+        actModel = Activity.objects.filter(activity_id=activityID)
+        activity = actModel['fields']
+
+        ticket['ativityName'] = activity['name']
+        ticket['place'] = activity['place']
+        ticket['activityKey'] = activity['key']
+        ticket['startTime'] = activity['start_time']
+        ticket['endTime'] = activity['end_time']
+        ticket['currentTime'] = time.time()
+
+        return activity
+
+        
+
 
 #TODO
 class Ticketing(APIView):

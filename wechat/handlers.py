@@ -88,6 +88,7 @@ class GetTicketHandler(WeChatHandler):
                self.is_event_click(self.view.event_keys['get_ticket'])
 
     def handle(self):
+        activityID = self.input['EventKey']
         return self.reply_single_news({
             'Title': self.get_message('ticket_title'),
             'Description': self.get_message('ticket_description'),
@@ -103,7 +104,7 @@ class GetDetailHandler(WeChatHandler):
     def handle(self):
         id = self.input['EventKey'].split('_')[-1]
         return self.reply_single_news({
-            'Title': self.get_message('list_title'),
-            'Description': self.get_message('list_description'),
+            'Title': self.get_message('detail_title'),
+            'Description': self.get_message('detail_description'),
             'Url': self.url_activity() + '?id=' + id,
         })

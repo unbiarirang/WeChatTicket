@@ -425,6 +425,7 @@
             if (!urlParam.create && locals.activity.currentTime > locals.activity.bookStart) {
                 initialProgress(locals.activity.usedTickets, locals.activity.bookedTickets, locals.activity.totalTickets);
             }
+            $('#input-pic_url').val(locals.activity.pic_url);
         }
 
         $('#fileUploadBtn').on('change', function () {
