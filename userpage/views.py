@@ -74,25 +74,22 @@ class UserTicket(APIView):
         openID = self.request.GET.get('openid', '')
         ticketID = self.request.GET.get('ticket', '')
         
-        ticketModel = Ticket.objects.filter(unique_id=openID)[0]
+        ticketModel = Ticket.objects.filter(unique_id=ticketID)[0]
         ticket = dict()
         ticket['uniqueId'] = ticketID
-        ticket['status'] = ticketModel['fields']['status']
+        ticket['status'] = ticketModel.status
 
-        activityID = ticketModel['fields']['activity_id']
-        actModel = Activity.objects.filter(activity_id=activityID)
-        activity = actModel['fields']
+        activityID = ticketModel.activity_id
+        activity = Activity.objects.filter(id=activityID)[0]
 
-        ticket['ativityName'] = activity['name']
-        ticket['place'] = activity['place']
-        ticket['activityKey'] = activity['key']
-        ticket['startTime'] = activity['start_time']
-        ticket['endTime'] = activity['end_time']
+        ticket['ativityName'] = activity.name
+        ticket['place'] = activity.place
+        ticket['activityKey'] = activity.key
+        ticket['startTime'] = activity.start_time.timestamp()
+        ticket['endTime'] = activity.end_time.timestamp()
         ticket['currentTime'] = time.time()
 
-        return activity
-
-        
+        return ticket
 
 
 #TODO

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 from wechat.wrapper import WeChatHandler
+from wechat.models import User, Activity, Ticket
 
 
 __author__ = "Epsirom"
@@ -88,12 +89,19 @@ class GetTicketHandler(WeChatHandler):
                self.is_event_click(self.view.event_keys['get_ticket'])
 
     def handle(self):
-        activityID = self.input['EventKey']
-        return self.reply_single_news({
-            'Title': self.get_message('ticket_title'),
-            'Description': self.get_message('ticket_description'),
-            'Url': self.url_ticket(),
-        })
+        print('+++', User.objects.filter(open_id=self.user.open_id)[0])
+        studentID = User.objects.filter(open_id=self.user.open_id)[0].student_id
+        tickets = Ticket.objects.filter(student_id=studentID)
+        
+        data = []
+        for ticket in tickets:
+            uniqueID = ticket.unique_id
+            activityName = ticket.activity.name
+            data.append({'unique_id': uniqueID, 'name': activityName})
+
+        self.data = data
+        print('+++', data)
+        return self.reply_text(self.get_message('ticket_list'))
 
 
 class GetDetailHandler(WeChatHandler):
