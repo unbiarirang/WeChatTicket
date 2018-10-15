@@ -67,11 +67,11 @@ class BookEmptyHandler(WeChatHandler):
         return self.reply_text(self.get_message('book_empty'))
 
 
-class ListActivitiesHandler(WeChatHandler):
+class ListActivityHandler(WeChatHandler):
 
     def check(self):
         return self.is_text('活动', '目录', 'activity', 'list') or \
-               self.is_event_click(self.view.event_keys['list_activities'])
+               self.is_event_click(self.view.event_keys['list_activity'])
 
     def handle(self):
         return self.reply_single_news({
@@ -92,4 +92,18 @@ class GetTicketHandler(WeChatHandler):
             'Title': self.get_message('ticket_title'),
             'Description': self.get_message('ticket_description'),
             'Url': self.url_ticket(),
+        })
+
+
+class GetDetailHandler(WeChatHandler):
+
+    def check(self):
+        return self.is_activity_click(self.view.event_keys['book_header'])
+
+    def handle(self):
+        id = self.input['EventKey'].split('_')[-1]
+        return self.reply_single_news({
+            'Title': self.get_message('list_title'),
+            'Description': self.get_message('list_description'),
+            'Url': self.url_activity() + '?id=' + id,
         })

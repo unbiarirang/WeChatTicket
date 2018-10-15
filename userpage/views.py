@@ -1,20 +1,27 @@
 from codex.baseerror import *
 from codex.baseview import APIView
+from codex.baseerror import ValidateError
 from WeChatTicket.views import StaticFileView
+from wechat.models import User, Activity
+from django.core import serializers
+import re
+import json
+import time
+import dateutil.parser
 
-from wechat.models import User
 
 
 class UserBind(APIView):
 
     def validate_user(self):
-        # TODO:
         """
         input: self.input['student_id'] and self.input['password']
         raise: ValidateError when validating failed
         """
-
-        raise NotImplementedError('You should implement UserBind.validate_user method')
+        studentID = self.input['student_id']
+        p = re.compile('^20[0-9]{8}$')
+        if p.match(studentID) is None:
+            raise ValidateError('Invalid student info.')
 
     def get(self):
         self.check_input('openid')
@@ -32,6 +39,34 @@ class UserHelp(StaticFileView):
 
     def get(self):
         return self.get_file('/help')
+
+
+class ListActivity(APIView):
+    def get(self):
+        actObjs = json.loads(serializers.serialize('json', Activity.objects.all()))
+
+        activities = []
+        for o in actObjs:
+            activity = o['fields']
+            activity['id'] = o['pk']
+            activities.append(activity)
+            
+        return activities
+
+
+class GetDetail(APIView):
+
+    def get(self):
+        activityID = self.request.GET.get('id', '')
+        actModel = Activity.objects.filter(id=activityID)
+        if len(actModel) != 0:
+            activity = json.loads(serializers.serialize('json', actModel))[0]['fields']
+            activity['currentTime'] = time.time()
+            for newKey, oldKey in [('startTime', 'start_time'), ('endTime', 'end_time'),
+                                   ('bookStart', 'book_start'), ('bookEnd', 'book_end')]:
+                activity[newKey] = dateutil.parser.parse(activity[oldKey]).timestamp()
+            return activity
+
 
 #TODO
 class UserTicket(APIView):

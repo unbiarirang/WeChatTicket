@@ -77,6 +77,9 @@ class WeChatHandler(object):
     def is_event_click(self, *event_keys):
         return self.is_msg_type('event') and (self.input['Event'] == 'CLICK') and (self.input['EventKey'] in event_keys)
 
+    def is_activity_click(self, event_key):
+        return self.is_msg_type('event') and (self.input['Event'] == 'CLICK') and (event_key in self.input['EventKey'])
+
     def is_event(self, *events):
         return self.is_msg_type('event') and (self.input['Event'] in events)
 
@@ -91,6 +94,9 @@ class WeChatHandler(object):
 
     def url_list(self):
         return settings.get_url('u/list')
+
+    def url_activity(self):
+        return settings.get_url('u/activity')
 
     def url_ticket(self):
         return settings.get_url('u/ticket')

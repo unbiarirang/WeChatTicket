@@ -15,5 +15,5 @@ urlpatterns = [
     url(r'^activity/delete/?$', DeleteActivity.as_view()),
     url(r'^activity/update/?$', UpdateActivity.as_view()),
     url(r'^activity/detail/?$', GetDetail.as_view()),
-#    url(r'^activity/menu/?$', SetUpActivities.as_view()),
+    url(r'^activity/menu/?$', SetUpMenu.as_view()),
 ]

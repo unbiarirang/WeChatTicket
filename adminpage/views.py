@@ -3,19 +3,22 @@ from django.contrib.auth.models import User
 from wechat.models import Activity
 from django.contrib.auth import authenticate 
 from codex.baseview import APIView
-from codex.baseerror import BaseError
+from codex.baseerror import ValidateError
 from django.http import HttpResponse
 from django.core import serializers
+from django.utils import timezone
+from wechat.views import CustomWeChatView
 import json
-import datetime
+import time
+import dateutil.parser
 
-cache =1 
+cache = 1 
 # TODO: session management
 class LogIn(APIView):
     def get(self):
         global cache
         if cache == 0:
-            raise BaseError(401, 'You should login first') 
+            raise ValidateError('You should login first') 
     
     def post(self):
         global cache
@@ -27,7 +30,7 @@ class LogIn(APIView):
 
         user = authenticate(username=username, password=password)
         if user is None:
-            raise BaseError(403, 'Invalid user name or password.')
+            raise ValidateError('Invalid user name or password.')
 
 
 class LogOut(APIView):
@@ -40,19 +43,23 @@ class LogOut(APIView):
 class SignUp(APIView):
     def get(self):
         pass
-    
+
     def post(self):
-        raise NotImplementedError('You should implement SignUp')
+        pass
 
 
 class ListActivity(APIView):
     def get(self):
-        actObjs = json.loads(serializers.serialize('json', Activity.objects.all()))
+        actModels = json.loads(serializers.serialize('json', Activity.objects.all()))
 
         activities = []
-        for o in actObjs:
-            activity = o['fields']
-            activity['id'] = o['pk']
+        for m in actModels:
+            activity = m['fields']
+            activity['id'] = m['pk']
+            activity['currentTime'] = time.time()
+            for newKey, oldKey in [('startTime', 'start_time'), ('endTime', 'end_time'),
+                                   ('bookStart', 'book_start'), ('bookEnd', 'book_end')]:
+                activity[newKey] = dateutil.parser.parse(activity[oldKey]).timestamp()
             activities.append(activity)
             
         return activities
@@ -99,8 +106,7 @@ class UpdateActivity(APIView):
         print('+++data:', data)
 
         activity = Activity.objects.filter(id=data['id'])[0]
-        data['id'] += 1 #temp
-        #activity.delete()
+        activity.delete()
 
         newActivity = Activity(**data)
         newActivity.save()
@@ -117,19 +123,50 @@ class GetDetail(APIView):
 
     def get(self):
         activityID = self.request.GET.get('id', '')
-        activity = Activity.objects.filter(id=activityID)
-        if len(activity) != 0:
-            activityObj = json.loads(serializers.serialize('json', activity))[0]['fields']
-            print('+++time: ', activityObj['start_time'])
-            activityObj['currentTime'] = datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc).isoformat() 
-            return activityObj
+        actModel = Activity.objects.filter(id=activityID)
+        if len(actModel) != 0:
+            activity = json.loads(serializers.serialize('json', actModel))[0]['fields']
+            activity['currentTime'] = time.time()
+            for newKey, oldKey in [('startTime', 'start_time'), ('endTime', 'end_time'),
+                                   ('bookStart', 'book_start'), ('bookEnd', 'book_end')]:
+                activity[newKey] = dateutil.parser.parse(activity[oldKey]).timestamp()
+            return activity
 
 
-# TODO
-class SetUpActivities(APIView):
+class SetUpMenu(APIView):
+
     def get(self):
-        raise NotImplementedError('You should implement SignUp')
+        currentMenu = CustomWeChatView.lib.get_wechat_menu()
+        actButtons = []
+        for btn in currentMenu:
+            if btn['name'] == '抢票':
+                actButtons = btn.get('sub_button', list())
+
+        activities = []
+        for idx, btn in enumerate(actButtons):
+            activity = dict()
+            activity['id'] = btn['key'].split('_')[-1]
+            activity['name'] = btn['name']
+            activity['menuIndex'] = idx + 1
+            activities.append(activity)
+
+        return activities
+
     
     def post(self):
-        raise NotImplementedError('You should implement SignUp')
+        data = json.loads(self.request.body.decode('utf-8'))
+        idList = data['ids']
+        nameList = data['names']
+
+        activities = []
+        for idx, id in enumerate(idList):
+            activity = Activity()
+            activity.id = id
+            activity.name = nameList[idx]
+            activities.append(activity)
+
+        print('+++', activities)
+        CustomWeChatView.update_menu(activities)
+
+
 
