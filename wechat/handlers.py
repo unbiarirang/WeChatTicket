@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 #
-from wechat.wrapper import WeChatHandler
+from wechat.wrapper import WeChatHandler, WeChatLib
 from wechat.models import User, Activity, Ticket
+from WeChatTicket import settings
+import json
 
 
 __author__ = "Epsirom"
@@ -99,7 +101,7 @@ class GetTicketHandler(WeChatHandler):
             activityName = ticket.activity.name
             data.append({'unique_id': uniqueID, 'name': activityName})
 
-        self.data = data
+        self.data = json.dumps(data)
         print('+++', data)
         return self.reply_text(self.get_message('ticket_list'))
 
@@ -116,3 +118,31 @@ class GetDetailHandler(WeChatHandler):
             'Description': self.get_message('detail_description'),
             'Url': self.url_activity() + '?id=' + id,
         })
+
+
+class BookTicketHandler(WeChatHandler):
+
+    def check(self):
+        return self.is_contain_key('book') #'抢票') #TODO
+
+    def handle(self):
+        print('BookTicketHandler!!!')
+        actKey = self.input['Content'].split(' ')[-1]
+        actModel = Activity.objects.filter(key=actKey)
+        if len(actModel) == 0:
+            return
+
+        actModel = actModel[0]
+        res = WeChatLib._http_get(self.api_url_book_ticket() + '?openid=' + self.user.open_id)
+        rjson = json.loads(res)
+        print('+++++rjson: ', rjson)
+        return self.reply_text('success')
+
+
+class CancelTicketHandler(WeChatHandler):
+
+    def check(self):
+        return self.is_contain_key('cancel') #'退票') #TODO
+
+    def handle(self):
+        return

@@ -74,6 +74,9 @@ class WeChatHandler(object):
     def is_text(self, *texts):
         return self.is_msg_type('text') and (self.input['Content'].lower() in texts)
 
+    def is_contain_key(self, key):
+        return self.is_msg_type('text') and (key in self.input['Content'])
+
     def is_event_click(self, *event_keys):
         return self.is_msg_type('event') and (self.input['Event'] == 'CLICK') and (self.input['EventKey'] in event_keys)
 
@@ -100,6 +103,12 @@ class WeChatHandler(object):
 
     def url_ticket(self):
         return settings.get_url('u/ticket')
+
+    def api_url_book_ticket(self):
+        return settings.get_url('api/u/ticket/book')
+
+    def url_cancel_ticket(self):
+        return settings.get_url('api/u/ticket/cancel')
 
 
 class WeChatEmptyHandler(WeChatHandler):

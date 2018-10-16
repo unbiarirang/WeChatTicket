@@ -4,6 +4,7 @@ from codex.baseerror import ValidateError
 from WeChatTicket.views import StaticFileView
 from wechat.models import User, Activity, Ticket
 from django.core import serializers
+from django.db import transaction, IntegrityError
 import re
 import json
 import time
@@ -92,8 +93,25 @@ class UserTicket(APIView):
         return ticket
 
 
-#TODO
-class Ticketing(APIView):
+class BookTicket(APIView):
+    def get(self):
+        openID = self.request.GET.get('openid', '')
+        actKey = self.request.GET.get('key', '')
+
+        try:
+            with transaction.atomic():
+                actModel = Activity.objects.filter(key=actKey,)
+                if len(actModel) == 0:
+                    return
+
+                actModel = actModel[0]
+                remainTickets = actModel.remain_tickets
+
+    def post(self):
+        raise NotImplementedError('You should implement Ticheting')
+
+
+class CancelTicket(APIView):
     def get(self):
         raise NotImplementedError('You should implement Ticketing')
 

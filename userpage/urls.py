@@ -14,6 +14,7 @@ urlpatterns = [
     url(r'^list/?$', ListActivity.as_view()),
     url(r'^activity/detail/?$', GetDetail.as_view()),
 #    url(r'^ticket/list?$', ListTicket.as_view()),
-    url(r'^ticket/detail/?$', UserTicket.as_view()),    # return html
-    #url(r'^activity/?$', Ticketing.as_view()), 
+    url(r'^ticket/detail/?$', UserTicket.as_view()),
+    url(r'^ticket/book/?$', BookTicket.as_view()), 
+    url(r'^ticket/cancle/?$', CancelTicket.as_view()),
 ]
