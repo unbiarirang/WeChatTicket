@@ -207,6 +207,32 @@ class WeChatLib(object):
         if rjson.get('errcode'):
             raise WeChatError(rjson['errcode'], rjson['errmsg'])
 
+    @classmethod
+    def book_ticket(cls, data):
+        openID = data['openid']
+        url = data['url']
+        actKey = data['key']
+
+        res = cls._http_get(url + '?openid=' + openID + '&key=' + actKey)
+        rjson = json.loads(res)
+        content = 'Booking complete!'
+        if rjson.get('code'):
+            content = rjson['msg']
+
+        reqData = dict({
+                      'touser': openID,
+                      'msgtype': 'text',
+                      'text': {'content': content}
+                  })
+        res = cls._http_post_dict(
+            'https://api.weixin.qq.com/cgi-bin/message/custom/send?access_token=%s' % (
+                cls.get_wechat_access_token()
+            ), reqData
+        )
+        rjson = json.loads(res)
+        if rjson.get('code'):
+            raise WeChatError(rjson['code'], rjson['msg'])
+
 
 class WeChatView(BaseView):
 

@@ -9,7 +9,7 @@ __author__ = "Epsirom"
 
 
 urlpatterns = [
-    url(r'^bind/?$', UserBind.as_view()),
+    url(r'^user/bind/?$', UserBind.as_view()),
     url(r'^help/?$', UserHelp.as_view()),
     url(r'^list/?$', ListActivity.as_view()),
     url(r'^activity/detail/?$', GetDetail.as_view()),

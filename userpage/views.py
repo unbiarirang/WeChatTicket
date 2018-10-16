@@ -1,13 +1,15 @@
 from codex.baseerror import *
 from codex.baseview import APIView
-from codex.baseerror import ValidateError
+from codex.baseerror import ValidateError, NotAvailableError, TransactionError, NotBindError, NotExistError
 from WeChatTicket.views import StaticFileView
 from wechat.models import User, Activity, Ticket
 from django.core import serializers
 from django.db import transaction, IntegrityError
+from django.db.models import Q
 import re
 import json
 import time
+import uuid
 import dateutil.parser
 
 
@@ -94,27 +96,78 @@ class UserTicket(APIView):
 
 
 class BookTicket(APIView):
+
     def get(self):
         openID = self.request.GET.get('openid', '')
         actKey = self.request.GET.get('key', '')
 
+        userModel = User.objects.all().filter(open_id=openID)
+        if len(userModel) == 0:
+            raise NotExistError('User not exist')
+        
+        userModel = userModel[0]
+        if userModel.student_id == '':
+            raise NotBindError('You should bind student id.')
+
         try:
-            with transaction.atomic():
-                actModel = Activity.objects.filter(key=actKey,)
+            with transaction.atomic(): # Transaction
+                actModel = Activity.objects.filter(key=actKey)
                 if len(actModel) == 0:
-                    return
+                    raise NotAvailableError('Activity not exists')
 
                 actModel = actModel[0]
-                remainTickets = actModel.remain_tickets
+                if actModel.remain_tickets <= 0:
+                    raise NotAvailableError('No ticket')
 
-    def post(self):
-        raise NotImplementedError('You should implement Ticheting')
+                actModel.remain_tickets -= 1
+                actModel.save()
+
+        except IntegrityError:
+            raise TransactionError('Please try again')
+
+        ticketID = str(uuid.uuid4()) + openID[-5:]
+        ticketModel = Ticket(student_id=userModel.student_id,
+                             unique_id=ticketID,
+                             activity=actModel,
+                             status=Ticket.STATUS_VALID)
+        ticketModel.save()
+        return 1
 
 
-class CancelTicket(APIView):
+class CancelTicket(APIView): #TODO:NOT COMPLETED
     def get(self):
-        raise NotImplementedError('You should implement Ticketing')
+        openID = self.request.GET.get('openid', '')
+        actKey = self.request.GET.get('key', '')
 
-    def post(self):
-        raise NotImplementedError('You should implement Ticheting')
+        userModel = User.objects.all().filter(open_id=openID)
+        if len(userModel) == 0:
+            raise NotExistError('User not exist')
+        
+        userModel = userModel[0]
+        if userModel.student_id == '':
+            raise NotBindError('You should bind student id.')
+
+        try:
+            with transaction.atomic(): # Transaction
+                actModel = Activity.objects.filter(key=actKey)
+                if len(actModel) == 0:
+                    raise NotAvailableError('Activity not exists')
+
+                actModel = actModel[0]
+                if actModel.start_time.timestamp() < time.time():
+                    raise NotAvailableError('You cannot cancel a ticket after the activity starts')
+
+                actModel.remain_tickets += 1
+                actModel.save()
+
+        except IntegrityError:
+            raise TransactionError('Please try again')
+
+        ticketID = str(uuid.uuid4()) + openID[-5:]
+        ticketModel = Ticket(student_id=userModel.student_id,
+                             unique_id=ticketID,
+                             activity=actModel,
+                             status=Ticket.STATUS_VALID)
+        ticketModel.save()
+        return 1
 

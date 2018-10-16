@@ -4,6 +4,7 @@ from wechat.wrapper import WeChatHandler, WeChatLib
 from wechat.models import User, Activity, Ticket
 from WeChatTicket import settings
 import json
+import threading
 
 
 __author__ = "Epsirom"
@@ -126,17 +127,31 @@ class BookTicketHandler(WeChatHandler):
         return self.is_contain_key('book') #'抢票') #TODO
 
     def handle(self):
-        print('BookTicketHandler!!!')
         actKey = self.input['Content'].split(' ')[-1]
         actModel = Activity.objects.filter(key=actKey)
         if len(actModel) == 0:
             return
 
-        actModel = actModel[0]
-        res = WeChatLib._http_get(self.api_url_book_ticket() + '?openid=' + self.user.open_id)
-        rjson = json.loads(res)
-        print('+++++rjson: ', rjson)
-        return self.reply_text('success')
+        data = dict({
+                   'openid': self.user.open_id,
+                   'url': self.api_url_book_ticket(),
+                   'key': actKey,
+               })
+
+        t = threading.Thread(target=WeChatLib.book_ticket, args=(data,))
+        t.start()
+        return self.reply_text('抢票进行中，请稍等')
+
+        #actKey = self.input['Content'].split(' ')[-1]
+        #actModel = Activity.objects.filter(key=actKey)
+        #if len(actModel) == 0:
+        #    return
+
+        #actModel = actModel[0]
+        #res = WeChatLib._http_get(self.api_url_book_ticket() + '?openid=' + self.user.open_id + '&key=' + actKey)
+        #rjson = json.loads(res)
+        #print('+++++rjson: ', rjson)
+        #return self.reply_text('success')
 
 
 class CancelTicketHandler(WeChatHandler):
