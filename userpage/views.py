@@ -111,6 +111,7 @@ class BookTicket(APIView):
 
         try:
             with transaction.atomic(): # Transaction
+                # decrease remain ticket count in Activity table
                 actModel = Activity.objects.filter(key=actKey)
                 if len(actModel) == 0:
                     raise NotAvailableError('Activity not exists')
@@ -122,15 +123,17 @@ class BookTicket(APIView):
                 actModel.remain_tickets -= 1
                 actModel.save()
 
+                # insert new ticket to Activity table
+                ticketID = str(uuid.uuid4()) + openID[-5:]
+                ticketModel = Ticket(student_id=userModel.student_id,
+                                     unique_id=ticketID,
+                                     activity=actModel,
+                                     status=Ticket.STATUS_VALID)
+                ticketModel.save()
+
         except IntegrityError:
             raise TransactionError('Please try again')
 
-        ticketID = str(uuid.uuid4()) + openID[-5:]
-        ticketModel = Ticket(student_id=userModel.student_id,
-                             unique_id=ticketID,
-                             activity=actModel,
-                             status=Ticket.STATUS_VALID)
-        ticketModel.save()
         return 1
 
 
@@ -149,6 +152,7 @@ class CancelTicket(APIView): #TODO:NOT COMPLETED
 
         try:
             with transaction.atomic(): # Transaction
+                # increase remain ticket count in Activity table
                 actModel = Activity.objects.filter(key=actKey)
                 if len(actModel) == 0:
                     raise NotAvailableError('Activity not exists')
@@ -157,17 +161,22 @@ class CancelTicket(APIView): #TODO:NOT COMPLETED
                 if actModel.start_time.timestamp() < time.time():
                     raise NotAvailableError('You cannot cancel a ticket after the activity starts')
 
+                # delete ticket in Ticket table
+                ticketModel = Ticket.objects.filter(student_id=userModel.student_id,
+                                                    activity_id=actModel.id)
+                if len(ticketModel) == 0:
+                    raise NotAvailableError("You don't have the ticket")
+
+                ticketModel = ticketModel[0]
+                ticketModel.delete()
+
+
                 actModel.remain_tickets += 1
                 actModel.save()
+
 
         except IntegrityError:
             raise TransactionError('Please try again')
 
-        ticketID = str(uuid.uuid4()) + openID[-5:]
-        ticketModel = Ticket(student_id=userModel.student_id,
-                             unique_id=ticketID,
-                             activity=actModel,
-                             status=Ticket.STATUS_VALID)
-        ticketModel.save()
         return 1
 

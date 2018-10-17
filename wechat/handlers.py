@@ -130,28 +130,18 @@ class BookTicketHandler(WeChatHandler):
         actKey = self.input['Content'].split(' ')[-1]
         actModel = Activity.objects.filter(key=actKey)
         if len(actModel) == 0:
-            return
+            return self.reply_text('活动不存在')
 
         data = dict({
                    'openid': self.user.open_id,
                    'url': self.api_url_book_ticket(),
                    'key': actKey,
+                   'action': 'book',
                })
 
-        t = threading.Thread(target=WeChatLib.book_ticket, args=(data,))
+        t = threading.Thread(target=WeChatLib.handle_ticket, args=(data,))
         t.start()
         return self.reply_text('抢票进行中，请稍等')
-
-        #actKey = self.input['Content'].split(' ')[-1]
-        #actModel = Activity.objects.filter(key=actKey)
-        #if len(actModel) == 0:
-        #    return
-
-        #actModel = actModel[0]
-        #res = WeChatLib._http_get(self.api_url_book_ticket() + '?openid=' + self.user.open_id + '&key=' + actKey)
-        #rjson = json.loads(res)
-        #print('+++++rjson: ', rjson)
-        #return self.reply_text('success')
 
 
 class CancelTicketHandler(WeChatHandler):
@@ -160,4 +150,18 @@ class CancelTicketHandler(WeChatHandler):
         return self.is_contain_key('cancel') #'退票') #TODO
 
     def handle(self):
-        return
+        actKey = self.input['Content'].split(' ')[-1]
+        actModel = Activity.objects.filter(key=actKey)
+        if len(actModel) == 0:
+            return self.reply_text('活动不存在')
+
+        data = dict({
+                   'openid': self.user.open_id,
+                   'url': self.api_url_cancel_ticket(),
+                   'key': actKey,
+                   'action': 'cancel',
+               })
+
+        t = threading.Thread(target=WeChatLib.handle_ticket, args=(data,))
+        t.start()
+        return self.reply_text('退票进行中，请稍等')

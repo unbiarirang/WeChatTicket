@@ -1,9 +1,9 @@
 from django.shortcuts import render
 from django.contrib.auth.models import User
-from wechat.models import Activity
+from wechat.models import Activity, Ticket
 from django.contrib.auth import authenticate 
 from codex.baseview import APIView
-from codex.baseerror import ValidateError
+from codex.baseerror import ValidateError, NotAvailableError
 from django.http import HttpResponse
 from django.core import serializers
 from django.core.files.storage import default_storage
@@ -182,7 +182,24 @@ class UploadImage(APIView):
         return full_path
 
 
+class CheckIn(APIView):
 
+    def post(self):
+        data = json.loads(self.request.body.decode('utf-8'))
+        actID = data['actId']
+        studentID = data['studentId']
+        
+        ticketModel = Ticket.objects.filter(student_id=studentID,
+                                            activity_id=actID,
+                                            status=Ticket.STATUS_VALID)
+        if len(ticketModel) == 0:
+            raise NotAvailableError('Ticket does not exist or is unavailable')
 
-
-
+        ticketModel = ticketModel[0]
+        ticketModel.status = Ticket.STATUS_USED
+        ticketModel.save()
+        
+        resData = dict()
+        resData['studentId'] = studentID
+        resData['ticket'] = ticketModel.unique_id
+        return resData

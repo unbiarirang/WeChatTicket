@@ -107,7 +107,7 @@ class WeChatHandler(object):
     def api_url_book_ticket(self):
         return settings.get_url('api/u/ticket/book')
 
-    def url_cancel_ticket(self):
+    def api_url_cancel_ticket(self):
         return settings.get_url('api/u/ticket/cancel')
 
 
@@ -208,14 +208,20 @@ class WeChatLib(object):
             raise WeChatError(rjson['errcode'], rjson['errmsg'])
 
     @classmethod
-    def book_ticket(cls, data):
+    def handle_ticket(cls, data):
         openID = data['openid']
         url = data['url']
         actKey = data['key']
+        action = data['action']
+
+        content = ''
+        if action == 'book':
+            content = '抢票成功!'
+        elif action == 'cancel':
+            content = '退票成功'
 
         res = cls._http_get(url + '?openid=' + openID + '&key=' + actKey)
         rjson = json.loads(res)
-        content = 'Booking complete!'
         if rjson.get('code'):
             content = rjson['msg']
 
