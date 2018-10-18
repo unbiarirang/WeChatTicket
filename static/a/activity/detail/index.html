@@ -492,7 +492,7 @@
                     render();
                 });
             } else {
-                api.post('/api/a/activity/update', locals.activity, function () {
+                api.post('/api/a/activity/detail', locals.activity, function () {
 
                 }, function (errno, errmsg, e) {
                     locals.processResult = '失败: [' + errno + '] ' + errmsg + (e ? ": " + e : "");

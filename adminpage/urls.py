@@ -13,7 +13,6 @@ urlpatterns = [
     url(r'^activity/list/?$', ListActivity.as_view()),
     url(r'^activity/create/?$', CreateActivity.as_view()),
     url(r'^activity/delete/?$', DeleteActivity.as_view()),
-    url(r'^activity/update/?$', UpdateActivity.as_view()),
     url(r'^activity/detail/?$', GetDetail.as_view()),
     url(r'^activity/menu/?$', SetUpMenu.as_view()),
     url(r'^activity/checkin/?$', CheckIn.as_view()),

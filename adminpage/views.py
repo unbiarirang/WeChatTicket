@@ -15,7 +15,7 @@ from WeChatTicket import settings
 import os
 import json
 import time
-import dateutil.parser
+from datetime import datetime
 
 cache = 1 
 # TODO: session management
@@ -64,7 +64,7 @@ class ListActivity(APIView):
             activity['currentTime'] = time.time()
             for newKey, oldKey in [('startTime', 'start_time'), ('endTime', 'end_time'),
                                    ('bookStart', 'book_start'), ('bookEnd', 'book_end')]:
-                activity[newKey] = dateutil.parser.parse(activity[oldKey]).timestamp()
+                activity[newKey] = datetime.strptime(activity[oldKey], "%Y-%m-%dT%H:%M:%SZ").timestamp() 
             activities.append(activity)
             
         return activities
@@ -89,7 +89,25 @@ class CreateActivity(APIView):
         activity.save()
 
 
-class UpdateActivity(APIView):
+class DeleteActivity(APIView):
+
+    def post(self):
+        delID = json.loads(self.request.body.decode('utf-8'))['id']
+        Activity.objects.filter(id=delID).delete()
+
+
+class GetDetail(APIView):
+
+    def get(self):
+        activityID = self.request.GET.get('id', '')
+        actModel = Activity.objects.filter(id=activityID)
+        if len(actModel) != 0:
+            activity = json.loads(serializers.serialize('json', actModel))[0]['fields']
+            activity['currentTime'] = time.time()
+            for newKey, oldKey in [('startTime', 'start_time'), ('endTime', 'end_time'),
+                                   ('bookStart', 'book_start'), ('bookEnd', 'book_end')]:
+                activity[newKey] = datetime.strptime(activity[oldKey], "%Y-%m-%dT%H:%M:%SZ").timestamp()
+            return activity
 
     def post(self):
         data = json.loads(self.request.body.decode('utf-8'))
@@ -108,34 +126,12 @@ class UpdateActivity(APIView):
                        'bookStart-hour', 'bookStart-year', 'currentTime']
         for key in uselessList:
             data.pop(key, None)
-        print('+++data:', data)
 
         activity = Activity.objects.filter(id=data['id'])[0]
         activity.delete()
 
         newActivity = Activity(**data)
         newActivity.save()
-        
-
-class DeleteActivity(APIView):
-
-    def post(self):
-        delID = json.loads(self.request.body.decode('utf-8'))['id']
-        Activity.objects.filter(id=delID).delete()
-
-
-class GetDetail(APIView):
-
-    def get(self):
-        activityID = self.request.GET.get('id', '')
-        actModel = Activity.objects.filter(id=activityID)
-        if len(actModel) != 0:
-            activity = json.loads(serializers.serialize('json', actModel))[0]['fields']
-            activity['currentTime'] = time.time()
-            for newKey, oldKey in [('startTime', 'start_time'), ('endTime', 'end_time'),
-                                   ('bookStart', 'book_start'), ('bookEnd', 'book_end')]:
-                activity[newKey] = dateutil.parser.parse(activity[oldKey]).timestamp()
-            return activity
 
 
 class SetUpMenu(APIView):

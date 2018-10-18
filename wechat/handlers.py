@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 #
 from wechat.wrapper import WeChatHandler, WeChatLib
-from wechat.models import User, Activity, Ticket
+from wechat.models import Activity, Ticket
 from WeChatTicket import settings
 import json
+import datetime
+import time
 import threading
 
 
@@ -78,47 +80,43 @@ class ListActivityHandler(WeChatHandler):
                self.is_event_click(self.view.event_keys['list_activity'])
 
     def handle(self):
-        return self.reply_single_news({
-            'Title': self.get_message('list_title'),
-            'Description': self.get_message('list_description'),
-            'Url': self.url_list(),
-        })
+        actModels = Activity.objects.filter(status=Activity.STATUS_PUBLISHED)
+
+        newsList = []
+        for actModel in actModels:
+            news = dict({
+                'Title': actModel.name,
+                'Description': actModel.description,
+                'PicUrl': actModel.pic_url,
+                'Url': self.url_activity() + '?id=' + str(actModel.id)
+            })
+            newsList.append(news)
+
+        return self.reply_news(newsList)
 
 
-class GetTicketHandler(WeChatHandler):
-
-    def check(self):
-        return self.is_text('查票', 'ticket') or \
-               self.is_event_click(self.view.event_keys['get_ticket'])
-
-    def handle(self):
-        print('+++', User.objects.filter(open_id=self.user.open_id)[0])
-        studentID = User.objects.filter(open_id=self.user.open_id)[0].student_id
-        tickets = Ticket.objects.filter(student_id=studentID)
-        
-        data = []
-        for ticket in tickets:
-            uniqueID = ticket.unique_id
-            activityName = ticket.activity.name
-            data.append({'unique_id': uniqueID, 'name': activityName})
-
-        self.data = json.dumps(data)
-        print('+++', data)
-        return self.reply_text(self.get_message('ticket_list'))
-
-
-class GetDetailHandler(WeChatHandler):
+class BookTicketButtonHandler(WeChatHandler):
 
     def check(self):
         return self.is_activity_click(self.view.event_keys['book_header'])
 
     def handle(self):
-        id = self.input['EventKey'].split('_')[-1]
-        return self.reply_single_news({
-            'Title': self.get_message('detail_title'),
-            'Description': self.get_message('detail_description'),
-            'Url': self.url_activity() + '?id=' + id,
-        })
+        actID = self.input['EventKey'].split('_')[-1]
+        actModel = Activity.objects.filter(id=actID)
+        if len(actModel) == 0:
+            return self.reply_text('活动不存在')
+        actModel = actModel[0]
+
+        data = dict({
+                   'openid': self.user.open_id,
+                   'url': self.api_url_book_ticket(),
+                   'key': actModel.key,
+                   'action': 'book',
+               })
+
+        t = threading.Thread(target=WeChatLib.handle_ticket, args=(data,))
+        t.start()
+        return self.reply_text('抢票进行中，请稍等')
 
 
 class BookTicketHandler(WeChatHandler):
@@ -142,6 +140,35 @@ class BookTicketHandler(WeChatHandler):
         t = threading.Thread(target=WeChatLib.handle_ticket, args=(data,))
         t.start()
         return self.reply_text('抢票进行中，请稍等')
+
+
+class GetTicketHandler(WeChatHandler):
+
+    def check(self):
+        return self.is_text('查票', 'ticket') or \
+               self.is_contain_key('取票') or \
+               self.is_event_click(self.view.event_keys['get_ticket'])
+
+    def handle(self):
+        studentID = self.user.student_id
+        ticketModels = None
+        if self.is_contain_key('取票') and len(self.input['Content'].split(' ')) == 2:
+            activityID = Activity.objects.filter(key=self.input['Content'].split(' ')[-1])
+            ticketModels = Ticket.objects.filter(activity_id=activityID, status=Ticket.STATUS_VALID)
+        else:
+            ticketModels = Ticket.objects.filter(student_id=studentID, status=Ticket.STATUS_VALID)
+        
+        newsList = []
+        for ticketModel in ticketModels:
+            news = dict({
+                'Title': ticketModel.activity.name,
+                'Description': ticketModel.activity.description,
+                'PicUrl': ticketModel.activity.pic_url,
+                'Url': self.url_ticket() + '?openid=' + self.user.open_id + '&ticket=' + ticketModel.unique_id
+            })
+            newsList.append(news)
+
+        return self.reply_news(newsList)
 
 
 class CancelTicketHandler(WeChatHandler):

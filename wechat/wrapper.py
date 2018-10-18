@@ -95,9 +95,6 @@ class WeChatHandler(object):
     def url_bind(self):
         return settings.get_url('u/bind', {'openid': self.user.open_id})
 
-    def url_list(self):
-        return settings.get_url('u/list')
-
     def url_activity(self):
         return settings.get_url('u/activity')
 
