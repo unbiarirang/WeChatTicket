@@ -38,7 +38,7 @@ WECHAT_TOKEN = CONFIGS['WECHAT_TOKEN']
 WECHAT_APPID = CONFIGS['WECHAT_APPID']
 WECHAT_SECRET = CONFIGS['WECHAT_SECRET']
 
-ALLOWED_HOSTS = ['127.0.0.1', '13.209.68.67', '123.206.96.15']
+ALLOWED_HOSTS = CONFIGS['ALLOWED_HOSTS']
 
 
 # Application definition
@@ -102,7 +102,6 @@ WSGI_APPLICATION = 'WeChatTicket.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
