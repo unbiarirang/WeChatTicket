@@ -27,11 +27,6 @@ class TestActivity(unittest.TestCase):
         activities = ListActivity().get()
         return self.assertEqual(len(activities), 1)
 
-class TestTicket(unittest.TestCase):
-
-    def test_book_ticket(self):
-        pass
-        
 
 if __name__ == '__main__':
     unittest.main()

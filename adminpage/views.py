@@ -14,7 +14,6 @@ from wechat.views import CustomWeChatView
 from WeChatTicket import settings
 import os
 import json
-import time
 from datetime import datetime
 
 cache = 1 
@@ -44,15 +43,6 @@ class LogOut(APIView):
         cache = 0
     
 
-# TODO
-class SignUp(APIView):
-    def get(self):
-        pass
-
-    def post(self):
-        pass
-
-
 class ListActivity(APIView):
     def get(self):
         actModels = json.loads(serializers.serialize('json', Activity.objects.all()))
@@ -61,13 +51,10 @@ class ListActivity(APIView):
         for m in actModels:
             activity = m['fields']
             activity['id'] = m['pk']
-            activity['currentTime'] = time.time()
+            activity['currentTime'] = timezone.now().timestamp()
             for newKey, oldKey in [('startTime', 'start_time'), ('endTime', 'end_time'),
                                    ('bookStart', 'book_start'), ('bookEnd', 'book_end')]:
-                try:
-                    activity[newKey] = datetime.strptime(activity[oldKey], "%Y-%m-%dT%H:%M:%SZ").timestamp()
-                except ValueError: # for testcase
-                    activity[newKey] = datetime.strptime(activity[oldKey], "%Y-%m-%dT%H:%M:%S.%fZ").timestamp()
+                activity[newKey] = datetime.strptime(activity[oldKey], "%Y-%m-%dT%H:%M:%SZ").timestamp()
 
             activities.append(activity)
             
@@ -105,13 +92,15 @@ class GetDetail(APIView):
     def get(self):
         activityID = self.request.GET.get('id', '')
         actModel = Activity.objects.filter(id=activityID)
-        if len(actModel) != 0:
-            activity = json.loads(serializers.serialize('json', actModel))[0]['fields']
-            activity['currentTime'] = time.time()
-            for newKey, oldKey in [('startTime', 'start_time'), ('endTime', 'end_time'),
-                                   ('bookStart', 'book_start'), ('bookEnd', 'book_end')]:
-                activity[newKey] = datetime.strptime(activity[oldKey], "%Y-%m-%dT%H:%M:%SZ").timestamp()
-            return activity
+        if len(actModel) == 0:
+            return
+
+        activity = json.loads(serializers.serialize('json', actModel))[0]['fields']
+        activity['currentTime'] = timezone.now().timestamp()
+        for newKey, oldKey in [('startTime', 'start_time'), ('endTime', 'end_time'),
+                               ('bookStart', 'book_start'), ('bookEnd', 'book_end')]:
+            activity[newKey] = datetime.strptime(activity[oldKey], "%Y-%m-%dT%H:%M:%SZ").timestamp()
+        return activity
 
     def post(self):
         data = json.loads(self.request.body.decode('utf-8'))
@@ -148,12 +137,24 @@ class SetUpMenu(APIView):
                 actButtons = btn.get('sub_button', list())
 
         activities = []
+        actIDs = []
         for idx, btn in enumerate(actButtons):
             activity = dict()
             activity['id'] = btn['key'].split('_')[-1]
+            actIDs.append(int(activity['id']))
             activity['name'] = btn['name']
             activity['menuIndex'] = idx + 1
             activities.append(activity)
+
+        actModels = Activity.objects.filter(book_end__gt=timezone.now())
+        for actModel in actModels:
+            if actModel.id not in actIDs:
+                print('+++', actModel.id)
+                activity = dict()
+                activity['id'] = actModel.id
+                activity['name'] = actModel.name
+                activity['menuIndex'] = 0
+                activities.append(activity)
 
         return activities
 
