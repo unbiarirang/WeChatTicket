@@ -134,7 +134,7 @@ class BookTicket(APIView):
         return 1
 
 
-class CancelTicket(APIView): #TODO:NOT COMPLETED
+class CancelTicket(APIView): 
     def get(self):
         openID = self.request.GET.get('openid', '')
         actKey = self.request.GET.get('key', '')
