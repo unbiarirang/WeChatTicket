@@ -182,7 +182,6 @@
         loginRequired(function () {
             api.get('/api/a/activity/list', {}, function (data) {
                 $.each(data, function (i, act) {
-                    console.log('act:', act);
                     updateDate(act, 'startTime', 'endTime', 'bookStart', 'bookEnd', 'currentTime');
                 });
                 locals.activities = data;

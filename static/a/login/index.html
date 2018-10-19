@@ -101,6 +101,7 @@
             $('#alert').text(message);
             dom.focus();
         }
+
         api.get('/api/a/login', {}, function (data) {
             window.location.href = '/a/activity/list';
         }, function () {

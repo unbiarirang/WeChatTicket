@@ -74,8 +74,14 @@ class WeChatHandler(object):
     def is_text(self, *texts):
         return self.is_msg_type('text') and (self.input['Content'].lower() in texts)
 
+    def is_contain_key(self, key):
+        return self.is_msg_type('text') and (key in self.input['Content'])
+
     def is_event_click(self, *event_keys):
         return self.is_msg_type('event') and (self.input['Event'] == 'CLICK') and (self.input['EventKey'] in event_keys)
+
+    def is_activity_click(self, event_key):
+        return self.is_msg_type('event') and (self.input['Event'] == 'CLICK') and (event_key in self.input['EventKey'])
 
     def is_event(self, *events):
         return self.is_msg_type('event') and (self.input['Event'] in events)
@@ -89,11 +95,17 @@ class WeChatHandler(object):
     def url_bind(self):
         return settings.get_url('u/bind', {'openid': self.user.open_id})
 
-    def url_list(self):
-        return settings.get_url('u/list')
+    def url_activity(self):
+        return settings.get_url('u/activity')
 
     def url_ticket(self):
         return settings.get_url('u/ticket')
+
+    def api_url_book_ticket(self):
+        return settings.get_url('api/u/ticket/book')
+
+    def api_url_cancel_ticket(self):
+        return settings.get_url('api/u/ticket/cancel')
 
 
 class WeChatEmptyHandler(WeChatHandler):
@@ -191,6 +203,38 @@ class WeChatLib(object):
         rjson = json.loads(res)
         if rjson.get('errcode'):
             raise WeChatError(rjson['errcode'], rjson['errmsg'])
+
+    @classmethod
+    def handle_ticket(cls, data):
+        openID = data['openid']
+        url = data['url']
+        actKey = data['key']
+        action = data['action']
+
+        content = ''
+        if action == 'book':
+            content = '抢票成功!'
+        elif action == 'cancel':
+            content = '退票成功'
+
+        res = cls._http_get(url + '?openid=' + openID + '&key=' + actKey)
+        rjson = json.loads(res)
+        if rjson.get('code'):
+            content = rjson['msg']
+
+        reqData = dict({
+                      'touser': openID,
+                      'msgtype': 'text',
+                      'text': {'content': content}
+                  })
+        res = cls._http_post_dict(
+            'https://api.weixin.qq.com/cgi-bin/message/custom/send?access_token=%s' % (
+                cls.get_wechat_access_token()
+            ), reqData
+        )
+        rjson = json.loads(res)
+        if rjson.get('code'):
+            raise WeChatError(rjson['code'], rjson['msg'])
 
 
 class WeChatView(BaseView):

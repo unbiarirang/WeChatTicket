@@ -315,7 +315,7 @@
             <div class="form-group">
                 <div class="col-sm-offset-2 col-sm-10">
                     {% if isCreate or activity.currentTime < activity.endTime %}
-                    <button type="button" onclick="publishActivity();" class="btn btn-primary" id="publishBtn">发布</button>
+                    <button type="button" onclick="publishActivity({{isCreate}});" class="btn btn-primary" id="publishBtn">发布</button>
                     {% endif %}
                     {% if isCreate or activity.status == 0 %}
                     <button type="submit" class="btn btn-default" id="saveBtn">暂存</button>
@@ -323,6 +323,8 @@
                     {% if isCreate or activity.currentTime < activity.endTime %}
                     <button type="reset" class="btn btn-warning" id="resetBtn">重置</button>
                     {% endif %}
+                    {% if not isCreate %}
+                    <button type="button" onclick="publishActivity({{isCreate}})" class="btn btn-primary" id="updateBtn">保存</button>
                 </div>
             </div>
         </form>
@@ -423,6 +425,7 @@
             if (!urlParam.create && locals.activity.currentTime > locals.activity.bookStart) {
                 initialProgress(locals.activity.usedTickets, locals.activity.bookedTickets, locals.activity.totalTickets);
             }
+            $('#input-pic_url').val(locals.activity.pic_url);
         }
 
         $('#fileUploadBtn').on('change', function () {
@@ -455,7 +458,7 @@
         locals.processResult = '';
         render();
     };
-    var publishActivity = function () {
+    var publishActivity = function (isCreate) {
         var data = {};
         var form = $('#activity-form');
         enableFields(document.getElementsByTagName("input"));
@@ -465,6 +468,7 @@
             data[input.name] = input.value;
         });
         data.status = 1;
+        console.log(data);
         wrapDate(data, 'startTime', 'endTime', 'bookStart', 'bookEnd');
         if (!locals.activity) {
             locals.activity = {};
@@ -476,16 +480,27 @@
             locals.status = 1;
             locals.processResult = '';
             render();
-            api.post(form.attr('action'), data, function (id) {
-                if (urlParam.create) {
-                    locals.activity.id = id;
-                }
-            }, function (errno, errmsg, e) {
-                locals.processResult = '失败: [' + errno + '] ' + errmsg + (e ? ": " + e : "");
-            }, function () {
-                locals.status = 2;
-                render();
-            });
+            if (isCreate) {
+                api.post(form.attr('action'), data, function (id) {
+                    if (urlParam.create) {
+                        locals.activity.id = id;
+                    }
+                }, function (errno, errmsg, e) {
+                    locals.processResult = '失败: [' + errno + '] ' + errmsg + (e ? ": " + e : "");
+                }, function () {
+                    locals.status = 2;
+                    render();
+                });
+            } else {
+                api.post('/api/a/activity/detail', locals.activity, function () {
+
+                }, function (errno, errmsg, e) {
+                    locals.processResult = '失败: [' + errno + '] ' + errmsg + (e ? ": " + e : "");
+                }, function () {
+                    locals.status = 2;
+                    render();
+                });
+            }
         } else {
             return false;
         }

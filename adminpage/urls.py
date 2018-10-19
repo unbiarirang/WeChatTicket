@@ -7,5 +7,14 @@ __author__ = "Epsirom"
 
 
 urlpatterns = [
-    url(r'^signup/?', SignUp.as_view()),
+    url(r'^login/?$', LogIn.as_view()),
+    url(r'^logout/?$', LogOut.as_view()),
+    url(r'^signup/?$', SignUp.as_view()),
+    url(r'^activity/list/?$', ListActivity.as_view()),
+    url(r'^activity/create/?$', CreateActivity.as_view()),
+    url(r'^activity/delete/?$', DeleteActivity.as_view()),
+    url(r'^activity/detail/?$', GetDetail.as_view()),
+    url(r'^activity/menu/?$', SetUpMenu.as_view()),
+    url(r'^activity/checkin/?$', CheckIn.as_view()),
+    url(r'^image/upload/?$', UploadImage.as_view()),
 ]
