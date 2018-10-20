@@ -31,12 +31,13 @@ class LogIn(APIView):
         user = authenticate(username=username, password=password)
         if user is None:
             raise ValidateError('Invalid user name or password.')
-
+        else:
+            return user
 
 class LogOut(APIView):
     def post(self):
         self.request.session['login'] = False 
-    
+        return False
 
 class ListActivity(APIView):
     def get(self):
@@ -95,6 +96,7 @@ class GetDetail(APIView):
 
         activity = json.loads(serializers.serialize('json', actModel))[0]['fields']
         actModel = actModel[0]
+        activity['id'] = actModel.id
         activity['currentTime'] = timezone.now().timestamp()
         activity['totalTickets'] = actModel.total_tickets
         activity['bookedTickets'] = actModel.total_tickets - actModel.remain_tickets
@@ -131,6 +133,7 @@ class GetDetail(APIView):
 
         newActivity = Activity(**data)
         newActivity.save()
+        return 1
 
 
 class SetUpMenu(APIView):
