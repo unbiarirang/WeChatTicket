@@ -429,6 +429,7 @@
         }
 
         $('#fileUploadBtn').on('change', function () {
+            console.log('fileUploadBtn');
             if (this.files.length > 0) {
                 var form = new FormData();
                 form.append('image', this.files[0]);

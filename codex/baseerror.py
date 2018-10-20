@@ -57,3 +57,9 @@ class NotBindError(BaseError):
 
     def __init__(self, msg):
         super(NotBindError, self).__init__(7, msg)
+
+
+class DuplicateError(BaseError):
+
+    def __init__(self, msg):
+        super(DuplicateError, self).__init__(8, msg)

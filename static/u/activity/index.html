@@ -213,7 +213,7 @@
     $(function () {
         swig.setDefaultTZOffset(new Date().getTimezoneOffset());
         render();
-        api.get('/api/u/activity/detail', {id: urlParam.id}, function (data) {
+        api.get('/api/u/activity', {id: urlParam.id}, function (data) {
             updateDate(data, 'startTime', 'endTime', 'bookStart', 'bookEnd', 'currentTime');
             locals.activity = data;
             startCounting(Date.now() - locals.activity.currentTime.getTime(), locals.activity);
