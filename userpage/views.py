@@ -57,7 +57,10 @@ class GetActivityDetail(APIView):
         activity['totalTickets'] = activity['total_tickets']
         activity['remainTickets'] = activity['remain_tickets']
         for newKey, oldKey in [('startTime', 'start_time'), ('endTime', 'end_time'), ('bookStart', 'book_start'), ('bookEnd', 'book_end')]:
-            activity[newKey] = datetime.strptime(activity[oldKey], '%Y-%m-%dT%H:%M:%SZ').timestamp()
+            try:
+                activity[newKey] = datetime.strptime(activity[oldKey], '%Y-%m-%dT%H:%M:%SZ').timestamp()
+            except ValueError:
+                activity[newKey] = datetime.strptime(activity[oldKey], '%Y-%m-%dT%H:%M:%S.%fZ').timestamp()
         return activity
 
 

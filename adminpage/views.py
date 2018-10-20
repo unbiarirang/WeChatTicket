@@ -49,7 +49,10 @@ class ListActivity(APIView):
             activity['currentTime'] = timezone.now().timestamp()
             for newKey, oldKey in [('startTime', 'start_time'), ('endTime', 'end_time'),
                                    ('bookStart', 'book_start'), ('bookEnd', 'book_end')]:
-                activity[newKey] = datetime.strptime(activity[oldKey], "%Y-%m-%dT%H:%M:%SZ").timestamp()
+                try:
+                    activity[newKey] = datetime.strptime(activity[oldKey], "%Y-%m-%dT%H:%M:%SZ").timestamp()
+                except ValueError: # for test
+                    activity[newKey] = datetime.strptime(activity[oldKey], "%Y-%m-%dT%H:%M:%S.%fZ").timestamp()
 
             activities.append(activity)
             
@@ -99,7 +102,10 @@ class GetDetail(APIView):
         activity['usedTickets'] = len(ticketModels)
         for newKey, oldKey in [('startTime', 'start_time'), ('endTime', 'end_time'),
                                ('bookStart', 'book_start'), ('bookEnd', 'book_end')]:
-            activity[newKey] = datetime.strptime(activity[oldKey], "%Y-%m-%dT%H:%M:%SZ").timestamp()
+            try:
+                activity[newKey] = datetime.strptime(activity[oldKey], "%Y-%m-%dT%H:%M:%SZ").timestamp()
+            except ValueError:
+                activity[newKey] = datetime.strptime(activity[oldKey], "%Y-%m-%dT%H:%M:%S.%fZ").timestamp()
         return activity
 
     def post(self):
@@ -116,7 +122,7 @@ class GetDetail(APIView):
                 data.pop(key, None)
 
         uselessList = ['bookStart-month', 'bookStart-minute', 'bookStart-day', \
-                       'bookStart-hour', 'bookStart-year', 'currentTime']
+                       'bookStart-hour', 'bookStart-year', 'currentTime', 'usedTickets', 'bookedTickets']
         for key in uselessList:
             data.pop(key, None)
 
