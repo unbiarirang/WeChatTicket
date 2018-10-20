@@ -3,8 +3,8 @@
 from wechat.wrapper import WeChatHandler, WeChatLib
 from wechat.models import Activity, Ticket
 from WeChatTicket import settings
+from django.utils import timezone
 import json
-import datetime
 import time
 import threading
 
@@ -76,11 +76,12 @@ class BookEmptyHandler(WeChatHandler):
 class ListActivityHandler(WeChatHandler):
 
     def check(self):
-        return self.is_text('活动', '目录', 'activity', 'list') or \
+        return self.is_text('抢啥', '活动', '目录', 'activity', 'list') or \
                self.is_event_click(self.view.event_keys['list_activity'])
 
     def handle(self):
-        actModels = Activity.objects.filter(status=Activity.STATUS_PUBLISHED)
+        actModels = Activity.objects.filter(status=Activity.STATUS_PUBLISHED,
+                                            book_end__gt=timezone.now())
 
         newsList = []
         for actModel in actModels:
@@ -92,6 +93,8 @@ class ListActivityHandler(WeChatHandler):
             })
             newsList.append(news)
 
+        if len(newsList) == 0:
+            return self.reply_text(self.get_message('book_empty'))
         return self.reply_news(newsList)
 
 
@@ -139,7 +142,7 @@ class BookTicketHandler(WeChatHandler):
 
         t = threading.Thread(target=WeChatLib.handle_ticket, args=(data,))
         t.start()
-        return self.reply_text('抢票进行中，请稍等')
+        return self.reply_text('请稍等')
 
 
 class GetTicketHandler(WeChatHandler):
@@ -191,4 +194,4 @@ class CancelTicketHandler(WeChatHandler):
 
         t = threading.Thread(target=WeChatLib.handle_ticket, args=(data,))
         t.start()
-        return self.reply_text('退票进行中，请稍等')
+        return self.reply_text('请稍等')

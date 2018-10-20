@@ -52,6 +52,8 @@ class WeChatHandler(object):
         ))
 
     def reply_news(self, articles):
+        if len(articles) == 0:
+            return self.reply_text('您没有拥有任何票')
         if len(articles) > 10:
             self.logger.warn('Reply with %d articles, keep only 10', len(articles))
         return get_template('news.xml').render(self.get_context(

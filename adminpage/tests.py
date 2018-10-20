@@ -118,7 +118,7 @@ class TestActivity(unittest.TestCase):
         guest.request =req2
         guest.post()
         return self.assertEqual('work normally',Activity.objects.filter(id=1)[0].description)
-        
+
 
 if __name__ == '__main__':
     unittest.main()
