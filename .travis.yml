@@ -1,0 +1,19 @@
+language: python
+sudo: enabled
+services:
+    - mysql
+python:
+    - "3.5"
+cache: pip
+before_install:
+    - mysql -e 'CREATE DATABASE myapp_test;'
+    - mv configs.example.json configs.json
+install:
+    - pip install -r requirements.txt
+text:
+    adapter: mysql2
+    database: myapp_test
+    username: travis
+    encoding: utf8
+script:
+    - python manage.py test

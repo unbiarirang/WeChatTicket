@@ -519,7 +519,20 @@
                 field.disabled = false;
             }
         }
-    }
+    };
+    var disableFields = function (fields) {
+        for(var i = 0;i < fields.length; i++) {
+            var field = fields[i];
+            if (field instanceof(Array)) {
+                for (var j = 0;j < field.length; j++) {
+                    field[j].disabled = true;
+                }
+            } else {
+                field.disabled = true;
+
+            }
+        }
+    };
 </script>
 </body>
 </html>

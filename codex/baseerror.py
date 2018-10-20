@@ -38,7 +38,7 @@ class ValidateError(BaseError):
 class NotExistError(BaseError):
 
     def __init__(self, msg):
-        super(NotAvailableError, self).__init__(4, msg)
+        super(NotExistError, self).__init__(4, msg)
 
 
 class NotAvailableError(BaseError):
