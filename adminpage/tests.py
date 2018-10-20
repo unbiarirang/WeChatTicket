@@ -135,7 +135,6 @@ class TestActivity(unittest.TestCase):
      
         return self.assertEqual(Edit.post(),1)
 
-        
 
 if __name__ == '__main__':
     unittest.main()
