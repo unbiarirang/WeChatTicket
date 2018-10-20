@@ -36,13 +36,14 @@ class LogIn(APIView):
         user = authenticate(username=username, password=password)
         if user is None:
             raise ValidateError('Invalid user name or password.')
-
+        else:
+            return user
 
 class LogOut(APIView):
     def post(self):
         global cache
         cache = 0
-    
+        return cache    
 
 # TODO
 class SignUp(APIView):
@@ -110,7 +111,10 @@ class GetDetail(APIView):
             activity['currentTime'] = time.time()
             for newKey, oldKey in [('startTime', 'start_time'), ('endTime', 'end_time'),
                                    ('bookStart', 'book_start'), ('bookEnd', 'book_end')]:
-                activity[newKey] = datetime.strptime(activity[oldKey], "%Y-%m-%dT%H:%M:%SZ").timestamp()
+                try:
+                    activity[newKey] = datetime.strptime(activity[oldKey], "%Y-%m-%dT%H:%M:%SZ").timestamp()
+                except ValueError: # for testcase
+                    activity[newKey] = datetime.strptime(activity[oldKey], "%Y-%m-%dT%H:%M:%S.%fZ").timestamp()
             return activity
 
     def post(self):
