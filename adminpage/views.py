@@ -16,17 +16,13 @@ import os
 import json
 from datetime import datetime
 
-cache = 1 
-# TODO: session management
 class LogIn(APIView):
     def get(self):
-        global cache
-        if cache == 0:
+        if self.request.session['login'] == False:
             raise ValidateError('You should login first') 
     
     def post(self):
-        global cache
-        cache = 1
+        self.request.session['login'] = True
 
         data = json.loads(self.request.body.decode('utf8'))
         username = data['username']
@@ -39,8 +35,7 @@ class LogIn(APIView):
 
 class LogOut(APIView):
     def post(self):
-        global cache
-        cache = 0
+        self.request.session['login'] = False 
     
 
 class ListActivity(APIView):
@@ -96,7 +91,12 @@ class GetDetail(APIView):
             return
 
         activity = json.loads(serializers.serialize('json', actModel))[0]['fields']
+        actModel = actModel[0]
         activity['currentTime'] = timezone.now().timestamp()
+        activity['totalTickets'] = actModel.total_tickets
+        activity['bookedTickets'] = actModel.total_tickets - actModel.remain_tickets
+        ticketModels = Ticket.objects.filter(activity=actModel, status=Ticket.STATUS_USED)
+        activity['usedTickets'] = len(ticketModels)
         for newKey, oldKey in [('startTime', 'start_time'), ('endTime', 'end_time'),
                                ('bookStart', 'book_start'), ('bookEnd', 'book_end')]:
             activity[newKey] = datetime.strptime(activity[oldKey], "%Y-%m-%dT%H:%M:%SZ").timestamp()
