@@ -12,8 +12,11 @@ from datetime import datetime, timezone
 class Request():
     def __init__(self):
         self.body = dict()
+        self.session = dict()
     def set_GET(self,key,value):
         self.body[key] = value
+    def set_session(self,key,value):
+        self.session[key] = value
 
 class RequestGET():
     def __init__(self):
@@ -32,6 +35,7 @@ class TestLogIn(unittest.TestCase):
     def test_login(self):
         req = Request()
         guest  = LogIn()
+        req.set_session('Login',False)
         req.set_GET('username','admin')
         req.set_GET('password','thudmteam123')
         req.body = json.dumps(req.body,default = myconverter)
@@ -42,7 +46,10 @@ class TestLogIn(unittest.TestCase):
 
 class TestLogOut(unittest.TestCase):
     def test_logout(self):
+        req = Request()
+        req.set_session('login',True)
         guest2 = LogOut()
+        guest2.request = req
         return self.assertEqual(0,guest2.post())
 
 class TestActivity(unittest.TestCase):
@@ -105,19 +112,29 @@ class TestActivity(unittest.TestCase):
         guest.request = req
         return self.assertEqual(guest.get()['key'],Activity.objects.filter(id=1)[0].key)
     def test_get_detail_post(self):
-        req = RequestGET()
-        guest = GetDetail()
-        req.set_GET('id',1)
-        guest.request = req
-        req = guest.get()
-        req['description'] = 'work normally'
-        req2 = Request()
-        print(req)
-        req2.body = json.dumps(req,default = myconverter)
-        req2.body = req2.body.encode('gbk')
-        guest.request =req2
-        guest.post()
-        return self.assertEqual('work normally',Activity.objects.filter(id=1)[0].description)
+        req = Request()
+        req2 = RequestGET()
+        req2.set_GET('id',1)
+        info = GetDetail()
+        Edit = GetDetail()
+        info.request = req2
+     
+        req.set_GET('id',info.get()['id'])
+        req.set_GET('startTime',info.get()['start_time'])
+        req.set_GET('endTime',info.get()['end_time'])
+        req.set_GET('bookStart',info.get()['book_start'])
+        req.set_GET('bookEnd',info.get()['book_end'])
+        req.set_GET('picUrl',info.get()['pic_url'])
+        req.set_GET('description','work normally')
+        req.set_GET('remainTickets',info.get()['remain_tickets'])
+        req.set_GET('totalTickets',info.get()['total_tickets'])
+        req.set_GET('status',1)
+        req.body = json.dumps(req.body)
+        req.body = req.body.encode('gbk')
+        Edit.request = req
+     
+        return self.assertEqual(Edit.post(),1)
+
         
 
 if __name__ == '__main__':
