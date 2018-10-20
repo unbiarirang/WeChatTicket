@@ -4,6 +4,7 @@ services:
     - mysql
 python:
     - "3.5"
+cache: pip
 before_install:
     - mysql -e 'CREATE DATABASE myapp_test;'
     - mv configs.example.json configs.json

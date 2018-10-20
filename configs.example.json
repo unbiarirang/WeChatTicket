@@ -11,5 +11,5 @@
   "DB_HOST": "127.0.0.1",
   "DB_PORT": "3306",
   "SITE_DOMAIN": "http://your.domain",
-  "ALLOWED_HOST": ["127.0.0.1"]
+  "ALLOWED_HOSTS": ["127.0.0.1"]
 }
