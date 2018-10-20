@@ -47,8 +47,8 @@ INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
-    # 'django.contrib.messages',
-    # 'django.contrib.staticfiles',
+    #'django.contrib.messages',
+    #'django.contrib.staticfiles',
     'django.contrib.admin',
 
     'wechat',
@@ -153,7 +153,7 @@ USE_TZ = True
 STATIC_URL = '/'
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-MEDIA_ROOT = os.path.join(STATIC_ROOT, 'images')
+MEDIA_ROOT = os.path.join(STATIC_ROOT, 'media')
 
 
 # Site and URL

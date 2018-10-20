@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from wechat.models import Activity, Ticket
 from django.contrib.auth import authenticate 
 from codex.baseview import APIView
-from codex.baseerror import ValidateError, NotAvailableError
+from codex.baseerror import ValidateError, NotAvailableError, DuplicateError
 from django.http import HttpResponse
 from django.core import serializers
 from django.core.files.storage import default_storage
@@ -63,8 +63,16 @@ class CreateActivity(APIView):
     
     def post(self):
         data = json.loads(self.request.body.decode('utf-8'))
-        data['remainTickets'] = data['totalTickets']
 
+        actModels = Activity.objects.filter(name=data['name'])
+        if len(actModels) != 0:
+            raise DuplicateError('Duplicated activity name!')
+
+        actModels = Activity.objects.filter(key=data['key'])
+        if len(actModels) != 0:
+            raise DuplicateError('Duplicated activity key!')
+
+        data['remainTickets'] = data['totalTickets']
         camelList = ['startTime', 'endTime', 'totalTickets', 'remainTickets', \
                      'bookStart', 'bookEnd', 'picUrl'] 
         underList = ['start_time', 'end_time', 'total_tickets', 'remain_tickets', \
@@ -95,6 +103,7 @@ class GetDetail(APIView):
 
         activity = json.loads(serializers.serialize('json', actModel))[0]['fields']
         actModel = actModel[0]
+        activity['id'] = actModel.id
         activity['currentTime'] = timezone.now().timestamp()
         activity['totalTickets'] = actModel.total_tickets
         activity['bookedTickets'] = actModel.total_tickets - actModel.remain_tickets

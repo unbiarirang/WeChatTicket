@@ -76,8 +76,7 @@ class BookEmptyHandler(WeChatHandler):
 class ListActivityHandler(WeChatHandler):
 
     def check(self):
-        return self.is_text('抢啥', '活动', '目录', 'activity', 'list') or \
-               self.is_event_click(self.view.event_keys['list_activity'])
+        return self.is_event_click(self.view.event_keys['list_activity'])
 
     def handle(self):
         actModels = Activity.objects.filter(status=Activity.STATUS_PUBLISHED,
@@ -95,6 +94,8 @@ class ListActivityHandler(WeChatHandler):
 
         if len(newsList) == 0:
             return self.reply_text(self.get_message('book_empty'))
+
+        print('+++newsList:', newsList)
         return self.reply_news(newsList)
 
 
@@ -125,7 +126,7 @@ class BookTicketButtonHandler(WeChatHandler):
 class BookTicketHandler(WeChatHandler):
 
     def check(self):
-        return self.is_contain_key('book') #'抢票') #TODO
+        return self.is_contain_key('抢票')
 
     def handle(self):
         actKey = self.input['Content'].split(' ')[-1]
@@ -148,19 +149,21 @@ class BookTicketHandler(WeChatHandler):
 class GetTicketHandler(WeChatHandler):
 
     def check(self):
-        return self.is_text('查票', 'ticket') or \
-               self.is_contain_key('取票') or \
+        return self.is_contain_key('取票') or \
+               self.is_contain_key('查票') or \
                self.is_event_click(self.view.event_keys['get_ticket'])
 
     def handle(self):
         studentID = self.user.student_id
         ticketModels = None
-        if self.is_contain_key('取票') and len(self.input['Content'].split(' ')) == 2:
-            activityID = Activity.objects.filter(key=self.input['Content'].split(' ')[-1])
-            ticketModels = Ticket.objects.filter(activity_id=activityID, status=Ticket.STATUS_VALID)
-        else:
+        if self.is_event_click(self.view.event_keys['get_ticket']):
             ticketModels = Ticket.objects.filter(student_id=studentID, status=Ticket.STATUS_VALID)
-        
+        elif (self.is_contain_key('取票') or self.is_contain_key('查票')) and len(self.input['Content'].split(' ')) == 2:
+            activityID = Activity.objects.filter(key=self.input['Content'].split(' ')[-1])
+            ticketModels = Ticket.objects.filter(activity_id=activityID, status=Ticket.STATUS_VALID, student_id=studentID)
+        else:
+            return self.reply_text(self.get_message('check_ticket'))
+
         newsList = []
         for ticketModel in ticketModels:
             news = dict({
@@ -177,7 +180,7 @@ class GetTicketHandler(WeChatHandler):
 class CancelTicketHandler(WeChatHandler):
 
     def check(self):
-        return self.is_contain_key('cancel') #'退票') #TODO
+        return self.is_contain_key('退票')
 
     def handle(self):
         actKey = self.input['Content'].split(' ')[-1]
