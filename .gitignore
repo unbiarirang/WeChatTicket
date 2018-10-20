@@ -66,4 +66,4 @@ target/
 
 # Custom files
 /configs.json
-/static/images
+/static/media

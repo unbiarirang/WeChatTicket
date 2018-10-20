@@ -194,7 +194,7 @@ class UploadImage(APIView):
     def post(self):
         image = self.request.FILES['image']
         path = default_storage.save(image.name, ContentFile(image.read()))
-        full_path = settings.get_url('images/' + path)
+        full_path = settings.get_url('/static/media/' + path)
         return full_path
 
 
