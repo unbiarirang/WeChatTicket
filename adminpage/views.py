@@ -31,12 +31,13 @@ class LogIn(APIView):
         user = authenticate(username=username, password=password)
         if user is None:
             raise ValidateError('Invalid user name or password.')
-
+        else:
+            return user
 
 class LogOut(APIView):
     def post(self):
         self.request.session['login'] = False 
-    
+        return False
 
 class ListActivity(APIView):
     def get(self):
@@ -140,6 +141,7 @@ class GetDetail(APIView):
 
         newActivity = Activity(**data)
         newActivity.save()
+        return 1
 
 
 class SetUpMenu(APIView):
