@@ -97,6 +97,10 @@ class DeleteActivity(APIView):
 class GetDetail(APIView):
 
     def get(self):
+        isCreate = self.request.GET.get('create', '')
+        if isCreate == 1:
+            return
+
         activityID = self.request.GET.get('id', '')
         actModel = Activity.objects.filter(id=activityID)
         if len(actModel) == 0:
@@ -166,7 +170,6 @@ class SetUpMenu(APIView):
         actModels = Activity.objects.filter(book_end__gt=timezone.now())
         for actModel in actModels:
             if actModel.id not in actIDs:
-                print('+++', actModel.id)
                 activity = dict()
                 activity['id'] = actModel.id
                 activity['name'] = actModel.name

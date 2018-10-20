@@ -428,7 +428,6 @@
             $('#input-pic_url').val(locals.activity.pic_url);
         }
 
-        console.log('+++++++');
         $('#fileUploadBtn').on('change', function () {
             console.log('fileUploadBtn');
             if (this.files.length > 0) {
@@ -508,7 +507,6 @@
         }
     };
     var uploadImage = function () {
-        console.log('+++uploadImage');
         $('#fileUploadBtn').click();
     };
     var enableFields = function (fields) {

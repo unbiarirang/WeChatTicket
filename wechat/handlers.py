@@ -95,7 +95,6 @@ class ListActivityHandler(WeChatHandler):
         if len(newsList) == 0:
             return self.reply_text(self.get_message('book_empty'))
 
-        print('+++newsList:', newsList)
         return self.reply_news(newsList)
 
 
