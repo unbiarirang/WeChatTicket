@@ -2,7 +2,7 @@ language: python
 sudo: enabled
 services:
     - mysql
-mysql:
+python:
     - "3.5"
 before_install:
     - mysql -e 'CREATE DATABASE myapp_test;'
